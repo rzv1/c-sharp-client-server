@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option java_package = "network.protobuf";
+option csharp_namespace = "Protobuf";
+
+message UserDto {
+  int64 id = 1;
+  string username = 2;
+  string password = 3;
+}
+
+message ParticipantDto {
+  int64 id = 1;
+  string name = 2;
+  int32 age = 3;
+  repeated int64 races = 4;
+}
+
+message RaceDto {
+  int64 id = 1;
+  string style = 2;
+  string distance = 3;
+  repeated int64 participants = 4;
+}
+
+enum RequestType {
+  UNKNOWN_REQUEST = 0;
+  LOGIN = 1;
+  LOGOUT = 2;
+  GET_PARTICIPANTS = 3;
+  GET_PARTICIPANTS_BY_ID = 4;
+  GET_RACES = 5;
+  GET_RACES_BY_ID = 6;
+  SAVE_PARTICIPANT = 7;
+  UPDATE_PARTICIPANT = 8;
+}
+
+enum ResponseType {
+  UNKNOWN_RESPONSE = 0;
+  OK = 1;
+  ERROR = 2;
+  GET_PARTICIPANTS_RESP = 3;
+  GET_PARTICIPANTS_BY_ID_RESP = 4;
+  GET_RACES_RESP = 5;
+  GET_RACES_BY_ID_RESP = 6;
+  SAVE_PARTICIPANT_RESP = 7;
+  UPDATE_PARTICIPANT_RESP = 8;
+}
+
+message Request {
+  RequestType type = 1;
+  UserDto user = 2;
+  ParticipantDto participant = 3;
+  RaceDto race = 4;
+}
+
+message Response {
+  ResponseType type = 1;
+  string errorMessage = 2;
+  UserDto user = 3;
+  ParticipantDto participant = 4;
+
+  repeated ParticipantDto participants = 5;
+  repeated RaceDto races = 6;
+}
