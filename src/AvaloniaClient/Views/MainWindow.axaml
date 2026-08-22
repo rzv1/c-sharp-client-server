@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AvaloniaClient.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:AvaloniaClient.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+        x:Class="AvaloniaClient.Views.MainWindow"
+        x:DataType="viewModels:MainWindowViewModel">
+
+    <Grid ColumnDefinitions="*, *, 1*">
+        
+        <Border Grid.Column="0" Padding="20" BorderBrush="#EEEEEE" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Text="VIZUALIZARE DATE" FontSize="20" FontWeight="Bold" Foreground="#003366"/>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                    <Separator Background="#EEEEEE" Margin="0,5"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Status:" FontWeight="Bold"/>
+                        <TextBlock x:Name="StatusMessage" Text="{Binding Message}" Foreground="#ffffff"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Grid RowDefinitions="*, *">
+                    <DataGrid ItemsSource="{Binding Races}" SelectedItem="{Binding SelectedRace}" 
+                                              AutoGenerateColumns="False" IsReadOnly="True" Focusable="False" SelectionMode="Single"
+                                              GridLinesVisibility="None" CornerRadius="8">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="STIL" Binding="{Binding Style}" Width="*"/>
+                                            <DataGridTextColumn Header="DISTANTA" Binding="{Binding Distance}" Width="110"/>
+                                            <DataGridTextColumn Header="#" Binding="{Binding ParticipantCount}" Width="60"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Participants}" SelectedItem="{Binding SelectedParticipant}" IsReadOnly="True" Focusable="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NUME" Binding="{Binding Name}" Width="*"></DataGridTextColumn>
+                            <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="110"></DataGridTextColumn>
+                            <DataGridTextColumn Header="#" Binding="{Binding RaceCount}" Width="60"></DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+                
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Column="1" Padding="25" Margin="0, 40, 0, 0">
+            <Grid RowDefinitions="* *">
+                <DataGrid ItemsSource="{Binding ParticipantsForRace}" IsReadOnly="True" Focusable="False" IsHitTestVisible="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="NUME" Binding="{Binding Name}" Width="*"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="110"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="#" Binding="{Binding RaceCount}" Width="60"></DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                <DataGrid Grid.Row="1"  ItemsSource="{Binding RacesForUpdate}" Focusable="False" IsReadOnly="True" Margin="0,-17,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="*" Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected}" 
+                                              HorizontalAlignment="Center" 
+                                              BorderBrush="#003366" Background="Transparent"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="STIL" Binding="{Binding Style}" Width="*"></DataGridTextColumn>
+                        <DataGridTextColumn Header="DISTANTA" Binding="{Binding Distance}" Width="110"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+        
+        <Border Grid.Column="2" Padding="25" BoxShadow="5 0 20 0 #10000000">
+            <ScrollViewer>
+                <StackPanel Spacing="20">
+                    <TextBlock Text="ÎNSCRIERE PARTICIPANT" FontSize="18" FontWeight="Bold" Foreground="#003366"/>
+                    
+                    <StackPanel Spacing="10">
+                        <Label Content="Nume Participant:"/>
+                        <TextBox Text="{Binding Name}" CornerRadius="5"/>
+                        
+                        <Label Content="Vârstă:"/>
+                        <TextBox Text="{Binding Age}" CornerRadius="5"/>
+                    </StackPanel>
+
+                    <TextBlock Text="PROBE DISPONIBILE" FontWeight="SemiBold" Margin="0,10,0,0"/>
+
+                    <DataGrid  ItemsSource="{Binding RacesForAdd}" Focusable="False" IsReadOnly="True" 
+                              Height="250" GridLinesVisibility="None">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="*" Width="60">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected}" 
+                                                  HorizontalAlignment="Center" 
+                                                  BorderBrush="#003366" Background="Transparent"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="STIL" Binding="{Binding Style}" Width="1.5*"/>
+                            <DataGridTextColumn Header="DISTANTA" Binding="{Binding Distance}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Spacing="10" Margin="0,10,0,0">
+                        <Button Content="ADAUGA" Command="{Binding ExecuteAdd}" HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="#003366" 
+                                Foreground="White" FontWeight="Bold" Height="40" CornerRadius="8"/>
+                        <Button Content="ACTUALIZEAZA" Command="{Binding ExecuteUpdate}" HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="#003366" 
+                                Foreground="White" FontWeight="Bold" Height="40" CornerRadius="8"></Button>
+                    </StackPanel>
+                    <Button Content="Logout" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding LogoutCommand}" Padding="3"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>
