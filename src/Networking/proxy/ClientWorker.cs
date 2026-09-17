@@ -27,8 +27,11 @@ public class ClientWorker(IServices clientProxy, Socket client) : IObserver
                 Log.InfoFormat("Received request: {0}", request);
                 var response = HandleRequest(request);
                 Log.InfoFormat("Sending response: {0}", response);
-                response.WriteDelimitedTo(_stream);
-                _stream.Flush();
+                lock (_stream)
+                {
+                    response.WriteDelimitedTo(_stream);
+                    _stream.Flush();
+                }
             }
             catch (Exception e)
             {

@@ -30,34 +30,41 @@ public class ServerProxy : IServices
         _stream = _client.GetStream();
         var tw = new Thread(() =>
         {
-            while (!_finished)
+            try
             {
-                try
+                while (!_finished)
                 {
-                    var response = Response.Parser.ParseDelimitedFrom(_stream);
-                    if (response == null)
+                    try
                     {
-                        Log.Info("Server connection closed.");
+                        var response = Response.Parser.ParseDelimitedFrom(_stream);
+                        if (response == null)
+                        {
+                            Log.Info("Server connection closed.");
+                            break;
+                        }
+                        Log.Info($"Response: {response}");
+                        if (response.Type == ResponseType.UpdateParticipantResp)
+                        {
+                            _clientController?.Update();
+                        }
+                        else 
+                        {
+                            _responses.Add(response);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (!_finished)
+                        {
+                            Log.Error("Error reading response from server: ", e);
+                        }
                         break;
                     }
-                    Log.Info($"Response: {response}");
-                    if (response.Type == ResponseType.UpdateParticipantResp)
-                    {
-                        _clientController?.Update();
-                    }
-                    else 
-                    {
-                        _responses.Add(response);
-                    }
                 }
-                catch (Exception e)
-                {
-                    if (!_finished)
-                    {
-                        Log.Error("Error reading response from server: ", e);
-                    }
-                    break;
-                }
+            }
+            finally
+            {
+                _responses.CompleteAdding();
             }
         });
         tw.Start();
@@ -72,15 +79,29 @@ public class ServerProxy : IServices
     private void SendRequest(Request request)
     {
         Log.Info($"Sending request: {request}");
-        request.WriteDelimitedTo(_stream); 
-        _stream!.Flush();
+        lock (_stream!)
+        {
+            request.WriteDelimitedTo(_stream); 
+            _stream.Flush();
+        }
+    }
+
+    private Response ReadResponse()
+    {
+        try
+        {
+            return _responses.Take();
+        }
+        catch (InvalidOperationException)
+        {
+            throw new AppException("Server connection lost.");
+        }
     }
 
     public void Login(User user, IObserver proxy)
     {
-        
         SendRequest(new Request() { Type = RequestType.Login, User =  DtoUtils.ToDto(user) });
-        var response = _responses.Take();
+        var response = ReadResponse();
         if (response.Type == ResponseType.Ok)
         {
             _clientController = proxy;
@@ -91,7 +112,7 @@ public class ServerProxy : IServices
     public void Logout(User user, IObserver proxy)
     {
         SendRequest(new Request() { Type = RequestType.Logout, User =  DtoUtils.ToDto(user) });
-        var response = _responses.Take();
+        var response = ReadResponse();
         if (response.Type == ResponseType.Ok)
         {
             //CloseConnection();
@@ -104,7 +125,7 @@ public class ServerProxy : IServices
     public IEnumerable<Race> GetAllRaces()
     {
         SendRequest(new Request(){Type = RequestType.GetRaces});
-        var response = _responses.Take();
+        var response = ReadResponse();
         if (response.Type == ResponseType.GetRacesResp)
             return response.Races.ToList().Select(DtoUtils.FromDto);
         throw new AppException("Get All Races error"); 
@@ -114,14 +135,14 @@ public class ServerProxy : IServices
     {
         var p = new Participant("mock", 0){Races = id};
         SendRequest(new Request() { Type = RequestType.GetRacesById, Participant = DtoUtils.ToDto(p)});
-        var response = _responses.Take();
+        var response = ReadResponse();
         return response.Races.ToList().Select(DtoUtils.FromDto);
     }
 
     public IEnumerable<Participant> GetAllParticipants()
     {
         SendRequest(new Request() {Type = RequestType.GetParticipants});
-        var response = _responses.Take();
+        var response = ReadResponse();
         return response.Participants.ToList().Select(DtoUtils.FromDto);
     }
 
@@ -129,14 +150,14 @@ public class ServerProxy : IServices
     {
         var r = new Race("mock", "mock"){Participants = id};
         SendRequest(new Request() {Type = RequestType.GetParticipantsById, Race = DtoUtils.ToDto(r)});
-        var response = _responses.Take();
+        var response = ReadResponse();
         return response.Participants.ToList().Select(DtoUtils.FromDto);
     }
 
     public Participant SaveParticipant(Participant participant)
     {
         SendRequest(new Request() { Type = RequestType.SaveParticipant, Participant = DtoUtils.ToDto(participant) });
-        var response = _responses.Take();
+        var response = ReadResponse();
 
         return DtoUtils.FromDto(response.Participant);
     }
@@ -144,6 +165,6 @@ public class ServerProxy : IServices
     public void UpdateParticipant(Participant participant)
     {
         SendRequest(new Request() { Type = RequestType.UpdateParticipant, Participant = DtoUtils.ToDto(participant) });
-        var response = _responses.Take();
+        var response = ReadResponse();
     }
 }

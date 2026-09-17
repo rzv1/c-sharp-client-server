@@ -95,11 +95,12 @@ public partial class MainWindowViewModel : INotifyPropertyChanged
 
     private void UpdateRaces()
     {
+        if (SelectedParticipant == null) return;
         ShowStatus("Participant selectat id " +  SelectedParticipant.Id);
         var filteredRaces = 
         _service.GetAllRaces().Select(race =>
         {
-            if (SelectedParticipant.Races!.Contains(race.Id))
+            if (SelectedParticipant.Races != null && SelectedParticipant.Races.Contains(race.Id))
                 race.IsSelected = true;
             return race;
         }).ToList(); 
@@ -109,13 +110,17 @@ public partial class MainWindowViewModel : INotifyPropertyChanged
     
     private void UpdateParticipants()
     {
+        if (SelectedRace == null) return;
         ShowStatus("Cursa selectata id " + SelectedRace.Id);
         ParticipantsForRace!.Clear();
-        var part = _service.GetAllParticipantsById(SelectedRace.Participants!);
-        foreach (var participantDto in part)
+        if (SelectedRace.Participants != null)
         {
-            ParticipantsForRace.Add(participantDto);
-        } 
+            var part = _service.GetAllParticipantsById(SelectedRace.Participants);
+            foreach (var participantDto in part)
+            {
+                ParticipantsForRace.Add(participantDto);
+            } 
+        }
     }
 
     
